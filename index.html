@@ -904,10 +904,14 @@ const saveLiked = () => DB.put('meta', [...S.liked], 'liked');
 const saveSettings = () => DB.put('meta', S.settings, 'settings');
 const saveTrack = t => DB.put('tracks', t).catch(() => {});
 let lastSave = 0;
+// Sichert alles, was nach einem Neustart wieder genauso aussehen soll: Warteschlange, Song, Position,
+// aktuelle Seite, Scrollposition und ob der Vollbild-Player offen war.
 function saveSession(force) {
   const now = Date.now(); if (!force && now - lastSave < 3000) return; lastSave = now;
-  if (!S.queue.length) return;
-  DB.put('meta', { queue: S.queue, origQueue: S.origQueue, qi: S.qi, time: audio.currentTime || 0, ctx: S.ctx, shuffle: S.shuffle, repeat: S.repeat }, 'session').catch(() => {});
+  DB.put('meta', {
+    queue: S.queue, origQueue: S.origQueue, qi: S.qi, time: audio.currentTime || 0, ctx: S.ctx, shuffle: S.shuffle, repeat: S.repeat,
+    view: S.view, scroll: $('#main').scrollTop, fs: $('#fs').classList.contains('open'), wasPlaying: !audio.paused, savedAt: now,
+  }, 'session').catch(() => {});
   const t = byId(S.queue[S.qi]);
   if (t && t.type !== 'song' && audio.currentTime > 0) { t.position = audio.currentTime; saveTrack(t); }
 }
@@ -1456,6 +1460,22 @@ audio.addEventListener('play', () => { renderNP(); refreshRows(); });
 audio.addEventListener('pause', () => { renderNP(); refreshRows(); saveSession(true); });
 audio.addEventListener('ended', () => { const t = byId(S.queue[S.qi]); if (t && t.type !== 'song') { t.position = 0; saveTrack(t); } next(true); });
 window.addEventListener('beforeunload', () => saveSession(true));
+// Handys beenden Apps im Standby oft ohne Vorwarnung → beim Wegwechseln sofort sichern
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveSession(true); });
+window.addEventListener('pagehide', () => saveSession(true));
+document.addEventListener('freeze', () => saveSession(true));
+window.addEventListener('pageshow', e => { if (e.persisted) { renderNP(); refreshRows(); } });
+// Sperrbildschirm/Benachrichtigung: Fortschritt aktuell halten (hilft Android, die Wiedergabe als aktiv zu erkennen)
+let lastPos = 0;
+function updatePositionState(force) {
+  if (!('mediaSession' in navigator) || !navigator.mediaSession.setPositionState) return;
+  const now = Date.now(); if (!force && now - lastPos < 4000) return; lastPos = now;
+  try { if (isFinite(audio.duration) && audio.duration > 0) navigator.mediaSession.setPositionState({ duration: audio.duration, playbackRate: audio.playbackRate || 1, position: Math.min(audio.currentTime, audio.duration) }); } catch (e) { }
+}
+audio.addEventListener('timeupdate', () => updatePositionState(false));
+['loadedmetadata', 'seeked', 'ratechange'].forEach(ev => audio.addEventListener(ev, () => updatePositionState(true)));
+audio.addEventListener('play', () => { if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; });
+audio.addEventListener('pause', () => { if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'; });
 $('#bPlay').onclick = toggle; $('#bNext').onclick = () => next(); $('#bPrev').onclick = prev;
 function toggleShuffle() {
   S.shuffle = !S.shuffle;
@@ -1494,6 +1514,9 @@ if ('mediaSession' in navigator) {
   navigator.mediaSession.setActionHandler('nexttrack', () => next());
   navigator.mediaSession.setActionHandler('previoustrack', prev);
   try { navigator.mediaSession.setActionHandler('seekto', d => { audio.currentTime = d.seekTime; }); } catch (e) { }
+  try { navigator.mediaSession.setActionHandler('seekbackward', d => { audio.currentTime = Math.max(0, audio.currentTime - (d.seekOffset || 10)); }); } catch (e) { }
+  try { navigator.mediaSession.setActionHandler('seekforward', d => { if (audio.duration) audio.currentTime = Math.min(audio.duration, audio.currentTime + (d.seekOffset || 10)); }); } catch (e) { }
+  try { navigator.mediaSession.setActionHandler('stop', () => { audio.pause(); }); } catch (e) { }
 }
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if ($('#fs').classList.contains('open')) return toggleFS(false); $$('.ov.open').forEach(o => o.classList.remove('open')); menu.classList.remove('open'); return; }
@@ -1974,15 +1997,23 @@ window.addEventListener('appinstalled',() => { deferredInstall = null; $('#bInst
   setBar(vol, audio.volume); $('#bMute').innerHTML = IC.vol;
   $('#lsort').value = S.libSort;
   const ses = S.session;
+  let restored = null;
   if (ses && Array.isArray(ses.queue)) {
     const q = ses.queue.filter(id => byId(id));
     if (q.length) {
       const curId = ses.queue[ses.qi];
       S.queue = q; S.qi = Math.max(0, q.indexOf(curId)); S.origQueue = (ses.origQueue || q).filter(id => byId(id)); S.ctx = ses.ctx || null; S.shuffle = !!ses.shuffle; S.repeat = ses.repeat || 0;
       await loadCur(false, q.indexOf(curId) > -1 ? ses.time : 0);
+      restored = byId(S.queue[S.qi]);
     }
   }
+  // Zuletzt geöffnete Seite wiederherstellen (falls es sie noch gibt)
+  if (ses && ses.view && ses.view.name && ses.view.name !== 'search') { S.view = ses.view; S.nav = [{ name: 'home' }, ses.view]; S.navI = ses.view.name === 'home' ? 0 : 1; if (S.navI === 0) S.nav = [{ name: 'home' }]; }
   render(); renderNP();
+  if (ses && ses.scroll) $('#main').scrollTop = ses.scroll;
+  if (ses && ses.fs && restored) toggleFS(true);
+  // Wurde die App im Standby beendet, während Musik lief: Hinweis zum Weiterhören (Browser erlauben kein Auto-Play nach Neustart)
+  if (ses && ses.wasPlaying && restored) setTimeout(() => toast(`Weiter bei ${fmt(ses.time)} – tippe auf ▶`), 400);
 })();
 })();
 </script>

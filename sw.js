@@ -1,7 +1,7 @@
 // Soundify Service Worker – macht die App komplett offline nutzbar.
 // Beim ersten Öffnen wird alles gespeichert; danach startet Soundify auch ohne Internet.
 // Funktioniert sowohl lokal (localhost) als auch online in einem Unterordner (z. B. GitHub Pages).
-const VERSION = 'soundify-v3';
+const VERSION = 'soundify-v4';
 const BASE = new URL('./', self.registration.scope).href;
 const ASSETS = ['./', 'manifest.webmanifest', 'icon-48.png', 'icon-64.png', 'icon-96.png', 'icon-128.png', 'icon-192.png', 'icon-256.png', 'icon-512.png', 'icon-maskable-512.png']
   .map(p => new URL(p, BASE).href);
