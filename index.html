@@ -508,6 +508,19 @@ body.creative .player{box-shadow:inset 0 0 0 1px var(--hair),0 0 calc(var(--beat
 body.creative .rp .bigart,body.creative .fs .bigart{transform:scale(calc(1 + var(--beat,0) * .03));transition:transform .08s linear}
 @media (max-width:760px){.player>.ctrl{position:static !important}}
 
+.cb-list{display:flex;flex-direction:column;gap:8px}
+.cb-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:#222;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.cb-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:color-mix(in srgb,var(--accent) 25%,#2c2c2c);flex:none}
+.cb-item .tx{flex:1;min-width:0}
+.cb-item .tx b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-item .tx span{color:var(--muted);font-size:12.5px}
+.cb-add{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;border:1.5px dashed #555;color:var(--muted);font-weight:600}
+.cb-add:hover{border-color:var(--accent);color:#fff}
+.cb-res{margin-top:14px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--accent) 16%,#1e1e1e)}
+.cb-res b{display:block;color:var(--accent)}
+.cb-res span{color:#ddd;font-size:13px}
+.modal-f button:disabled{opacity:.45;cursor:default}
+
 /* ================= Handy-Version ================= */
 @media (max-width:760px){
   body{overflow:hidden}
@@ -604,6 +617,42 @@ body.creative .rp .bigart,body.creative .fs .bigart{transform:scale(calc(1 + var
   .fs-lyrbtn{display:inline-flex !important}
 }
 .fs-lyrbtn{display:none}
+/* Extras im Vollbild-Player: Sleep-Timer, Tempo, Songtext, Warteschlange */
+.fs-x{display:flex;justify-content:center;gap:10px;margin-top:18px}
+.fs-x button{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:72px;padding:8px 6px;border-radius:12px;color:rgba(255,255,255,.72);font-size:11.5px;font-weight:600}
+.fs-x button svg{font-size:20px;width:20px;height:20px}
+.fs-x button b{font-size:15px;line-height:20px;height:20px}
+.fs-x button:hover{color:#fff;background:rgba(255,255,255,.08)}
+.fs-x button.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.fs-x .m-only{display:none}
+.menu .sub-t{white-space:normal}
+@media (max-width:760px){
+  .fs-x{justify-content:space-between;gap:4px;margin-top:14px}
+  .fs-x button{flex:1;min-width:0;padding:8px 2px}
+  .fs-x .m-only{display:flex}
+  .fs.lyr .fs-body .bigart{display:none}
+  .fs.lyr .fs-lyr{display:block !important;max-height:100%;font-size:21px;line-height:1.5;padding:4px 2px;align-self:stretch}
+  .fs.lyr .fs-body{align-content:stretch}
+  /* Menüs als Blatt von unten */
+  .menu.sheet{left:8px !important;right:8px !important;top:auto !important;bottom:calc(8px + env(safe-area-inset-bottom)) !important;width:auto;min-width:0;max-height:72dvh;padding:6px;border-radius:16px;background:rgba(34,34,34,.97)}
+  .menu.sheet button{padding:14px 14px;font-size:15px}
+  .menu.sheet .sub-t{padding:10px 14px 6px}
+  /* Meldungen im Vollbild oben statt über den Tasten */
+  .toast{width:max-content}
+  body:has(.fs.open) .toast{bottom:auto;top:calc(64px + env(safe-area-inset-top))}
+  /* Warteschlange: mehr Platz für Titel, Entfernen-Knopf immer sichtbar */
+  .qrow{grid-template-columns:20px minmax(0,1fr) 38px 30px;gap:8px;padding:0 4px;height:60px}
+  .qrow .ti .art{width:44px;height:44px}
+  .qrow .rm{opacity:1}
+  /* Kreative Funktionen: Auswahl/Knöpfe unter den Text statt daneben */
+  .cr-modal .modal-h{padding:18px 18px 6px}
+  .cr-modal .mb{padding:8px 14px 18px}
+  .cr-item{flex-wrap:wrap;gap:6px 12px;padding:12px}
+  .cr-item:has(select) .tx,.cr-item:has(.go) .tx{flex-basis:calc(100% - 52px)}
+  .cr-item select,.cr-item .go{margin-left:50px}
+  .cr-item select{flex:1}
+}
+.cr-master>.tg{flex:none}
 .lbl-m{display:none}
 @media (max-width:760px){.lbl-d{display:none}.lbl-m{display:inline}}
 @media (hover:none){
@@ -802,6 +851,8 @@ body.creative .rp .bigart,body.creative .fs .bigart{transform:scale(calc(1 + var
   </div>
 </div>
 
+<div class="ov" id="cbOv"><div class="modal" style="width:min(580px,100%)"><div class="modal-h"><h3>Backups kombinieren</h3><button class="icon-btn" data-close><svg viewBox="0 0 24 24"><path d="M18.3 5.71 12 12.01l-6.3-6.3-1.41 1.41L10.59 13.4l-6.3 6.3 1.41 1.41 6.3-6.3 6.3 6.3 1.41-1.41-6.3-6.3 6.3-6.3z"/></svg></button></div><div class="mb" id="cbBody"></div></div></div>
+<input type="file" id="fCombine" accept=".soundify,.klang,application/octet-stream" multiple hidden>
 <input type="file" id="fImport" accept=".soundify,.klang,application/octet-stream" hidden>
 <div class="menu" id="menu"></div>
 <div class="toast" id="toast"></div>
@@ -1298,7 +1349,14 @@ function renderFS() {
   <div class="fs-body">${artHTML(t, 'bigart')}<div class="fs-lyr">${t.lyrics ? esc(t.lyrics) : t.desc ? esc(t.desc) : `<span style="color:rgba(255,255,255,.5)">Für diesen Titel ist kein Songtext hinterlegt.</span>`}</div></div>
   <div class="fs-info"><div><div class="n">${esc(t.title)}</div><div class="s">${esc(artistNames(t).join(', '))}${t.album ? ' · ' + esc(t.album) : ''}</div></div><button class="like fs-lyrbtn ${S.liked.has(t.id) ? 'on' : ''}" data-like="${t.id}" title="Lieblingssongs">${S.liked.has(t.id) ? IC.heartF : IC.heart}</button></div>
   <div class="fs-ctrl"><div class="prog"><span id="fsCur">${fmt(audio.currentTime)}</span><div class="bar" id="fsSeek"><div class="tr"><div class="fi"></div><div class="kn"></div></div></div><span>${fmt(audio.duration || t.duration)}</span></div>
-  <div class="btns"><button class="b ${S.shuffle ? 'on' : ''}" data-act="shuffle">${IC.shuffle}</button><button class="b" data-act="prev">${IC.prev}</button><button class="pp" data-act="toggle">${audio.paused ? IC.play : IC.pause}</button><button class="b" data-act="next">${IC.next}</button><button class="b ${S.repeat ? 'on' : ''}" data-act="repeat">${IC.repeat}</button></div></div>`;
+  <div class="btns"><button class="b ${S.shuffle ? 'on' : ''}" data-act="shuffle">${IC.shuffle}</button><button class="b" data-act="prev">${IC.prev}</button><button class="pp" data-act="toggle">${audio.paused ? IC.play : IC.pause}</button><button class="b" data-act="next">${IC.next}</button><button class="b ${S.repeat ? 'on' : ''}" data-act="repeat">${IC.repeat}</button></div></div>
+  <div class="fs-x">
+    <button data-act="fsleep" class="${S.sleepAt || S.sleepEnd ? 'on' : ''}">${IC.moon}<span id="fsSleepT">${sleepShort() || 'Sleep-Timer'}</span></button>
+    <button data-act="fspeed" class="${(S.settings.speed || 1) !== 1 ? 'on' : ''}"><b>${(S.settings.speed || 1).toString().replace('.', ',')}×</b><span>Tempo</span></button>
+    <button data-act="fslyr" class="m-only ${S.fsLyr ? 'on' : ''}">${IC.lyr}<span>Songtext</span></button>
+    <button data-act="fsqueue">${IC.queue}<span>Warteschlange</span></button>
+  </div>`;
+  fs.classList.toggle('lyr', !!S.fsLyr);
   const fsSeek = $('#fsSeek'); setBar(fsSeek, audio.currentTime / audio.duration);
   dragBar(fsSeek, f => setBar(fsSeek, f), f => { if (audio.duration) audio.currentTime = f * audio.duration; });
 }
@@ -1554,22 +1612,24 @@ $('#bQueue').onclick = () => S.view.name === 'queue' ? navStep(-1) : go('queue')
 $('#bRp').onclick = () => { S.settings.rp = !S.settings.rp; saveSettings(); renderNP(); };
 $('#bFs').onclick = () => toggleFS();
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
-$('#bSpeed').onclick = e => {
-  const r = e.currentTarget.getBoundingClientRect();
+function speedMenu(anchor) {
+  const r = anchor.getBoundingClientRect();
   menu.innerHTML = `<div class="sub-t">Wiedergabegeschwindigkeit</div>` + SPEEDS.map(s => `<button data-m="speed" data-v="${s}" class="${(S.settings.speed || 1) === s ? 'on' : ''}">${String(s).replace('.', ',')}×${s === 1 ? ' (Normal)' : ''}</button>`).join('');
   showMenu(r.left - 80, r.top - 8, true);
-};
-$('#bSleep').onclick = e => {
-  const r = e.currentTarget.getBoundingClientRect();
-  menu.innerHTML = `<div class="sub-t">Sleep-Timer</div>` + [5, 10, 15, 30, 45, 60, 90].map(m => `<button data-m="sleep" data-v="${m}">${m} Minuten</button>`).join('') + `<button data-m="sleep" data-v="end" class="${S.sleepEnd ? 'on' : ''}">Ende des Titels</button>` + (S.sleepAt || S.sleepEnd ? `<hr><button data-m="sleep" data-v="off">Timer ausschalten</button>` : '');
+}
+function sleepMenu(anchor) {
+  const r = anchor.getBoundingClientRect();
+  menu.innerHTML = `<div class="sub-t">Sleep-Timer${S.sleepAt || S.sleepEnd ? ' · ' + sleepText() : ''}</div>` + [5, 10, 15, 30, 45, 60, 90].map(m => `<button data-m="sleep" data-v="${m}">${m} Minuten</button>`).join('') + `<button data-m="sleep" data-v="end" class="${S.sleepEnd ? 'on' : ''}">Ende des Titels</button>` + (S.sleepAt || S.sleepEnd ? `<hr><button data-m="sleep" data-v="off">Timer ausschalten</button>` : '');
   showMenu(r.left - 100, r.top - 8, true);
-};
+}
+$('#bSpeed').onclick = e => speedMenu(e.currentTarget);
+$('#bSleep').onclick = e => sleepMenu(e.currentTarget);
 const sleepShort = () => S.sleepEnd ? 'Ende' : S.sleepAt ? Math.max(0, Math.ceil((S.sleepAt - Date.now()) / 60000)) + 'm' : '';
 const sleepText = () => S.sleepEnd ? 'Stoppt am Ende des aktuellen Titels.' : S.sleepAt ? `Stoppt in ${fmt((S.sleepAt - Date.now()) / 1000)}.` : '';
 setInterval(() => {
   if (S.sleepAt) {
     if (Date.now() >= S.sleepAt) { S.sleepAt = 0; audio.pause(); toast('Sleep-Timer: Wiedergabe beendet'); renderNP(); }
-    else { const el = $('#sleepT'); if (el) el.textContent = sleepShort(); const r = $('#rpSleep'); if (r) r.textContent = sleepText(); }
+    else { const el = $('#sleepT'); if (el) el.textContent = sleepShort(); const fe = $('#fsSleepT'); if (fe) fe.textContent = sleepShort(); const r = $('#rpSleep'); if (r) r.textContent = sleepText(); }
   }
 }, 1000);
 if ('mediaSession' in navigator) {
@@ -1870,32 +1930,125 @@ async function exportBackup() {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
   toast(`Backup mit ${S.tracks.length} Titeln erstellt (${(blob.size / 1048576).toFixed(0)} MB)`);
 }
-$('#fImport').onchange = async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try {
-    const head = new Uint8Array(await f.slice(0, 14).arrayBuffer());
-    if (new TextDecoder().decode(head.slice(0, 10)) !== MAGIC) throw new Error('Keine gültige Soundify-Backup-Datei.');
-    const hl = new DataView(head.buffer).getUint32(10);
-    const data = JSON.parse(new TextDecoder().decode(await f.slice(14, 14 + hl).arrayBuffer()));
-    if (!confirm(`Backup vom ${new Date(data.date).toLocaleString('de-DE')} mit ${data.tracks.length} Titeln und ${data.playlists.length} Playlists importieren? Vorhandene Titel bleiben erhalten.`)) return;
-    toast('Import läuft …');
-    let off = 14 + hl, n = 0;
-    for (const m of data.tracks) {
-      const { _coverSize, _coverType, _audioSize, _audioType, ...t } = m;
-      if (_coverSize) { t.cover = new Blob([f.slice(off, off + _coverSize)], { type: _coverType }); off += _coverSize; }
-      if (_audioSize) { const ab = new Blob([f.slice(off, off + _audioSize)], { type: _audioType }); off += _audioSize; await DB.put('blobs', ab, t.id); }
-      await DB.put('tracks', t); n++;
+// ---------- Backups lesen, Dopplungen erkennen, kombinieren ----------
+async function readBackup(f) {
+  const h = new Uint8Array(await f.slice(0, 14).arrayBuffer());
+  if (new TextDecoder().decode(h.slice(0, 10)) !== MAGIC) throw new Error(`„${f.name}“ ist keine Soundify-Backup-Datei.`);
+  const hl = new DataView(h.buffer).getUint32(10);
+  const data = JSON.parse(new TextDecoder().decode(await f.slice(14, 14 + hl).arrayBuffer()));
+  let off = 14 + hl; // Position von Cover und Audio jedes Titels in der Datei merken
+  for (const m of data.tracks) { m._co = off; off += m._coverSize || 0; m._ao = off; off += m._audioSize || 0; }
+  data.playlists = data.playlists || []; data.liked = data.liked || [];
+  return { file: f, data };
+}
+// Zwei Titel gelten als gleich: gleiche ID, oder gleicher Titel + Künstler (Groß-/Kleinschreibung, Akzente und
+// Satzzeichen egal) bei fast gleicher Länge (±2 s), oder dieselbe Originaldatei (Dateiname + Größe).
+const normTxt = s => String(s || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9ß]+/g, ' ').trim();
+const sizeOf = t => t._audioSize || t.size || 0;
+function sameSong(a, b) {
+  if (a.id === b.id) return true;
+  if (a.fileName && a.fileName === b.fileName && sizeOf(a) && sizeOf(a) === sizeOf(b)) return true;
+  if (normTxt(a.title) !== normTxt(b.title) || normTxt(a.artist) !== normTxt(b.artist)) return false;
+  return !(a.duration && b.duration) || Math.abs(a.duration - b.duration) <= 2;
+}
+// Infos des Duplikats in den behaltenen Titel übernehmen, wo dort etwas fehlt
+function mergeInto(k, t) {
+  for (const f of ['lyrics', 'desc', 'album', 'genre', 'feat', 'color', 'track', 'episode']) if (!k[f] && t[f]) k[f] = t[f];
+  k.plays = Math.max(k.plays || 0, t.plays || 0); k.lastPlayed = Math.max(k.lastPlayed || 0, t.lastPlayed || 0);
+  k.added = Math.min(k.added || Infinity, t.added || Infinity); if (k.added === Infinity) k.added = Date.now();
+}
+function mergePlaylists(lists, map) {
+  const out = [];
+  for (const p of lists) {
+    const items = p.tracks.map(id => map.get(id)).filter(Boolean);
+    const same = out.find(x => x.id === p.id || normTxt(x.name) === normTxt(p.name));
+    if (same) { for (const id of items) if (!same.tracks.includes(id)) same.tracks.push(id); if (!same.desc && p.desc) same.desc = p.desc; }
+    else out.push({ ...p, tracks: [...new Set(items)] });
+  }
+  return out;
+}
+function combineBackups(list) {
+  const kept = [], map = new Map(); let dups = 0;
+  for (const b of list) for (const t of b.data.tracks) {
+    const hit = kept.find(k => sameSong(k.t, t));
+    if (hit) {
+      dups++; map.set(t.id, hit.t.id); mergeInto(hit.t, t);
+      if (!hit.cover && t._coverSize) { hit.cover = b.file.slice(t._co, t._co + t._coverSize); hit.t._coverType = t._coverType; }
+    } else {
+      kept.push({ t: { ...t }, cover: t._coverSize ? b.file.slice(t._co, t._co + t._coverSize) : null, audio: t._audioSize ? b.file.slice(t._ao, t._ao + t._audioSize) : null });
+      map.set(t.id, t.id);
     }
-    for (const p of data.playlists) await DB.put('playlists', p);
-    for (const id of data.liked || []) S.liked.add(id); await saveLiked();
-    await load(); render(); renderNP(); toast(`${n} Titel importiert`);
+  }
+  const parts = [], tracks = kept.map(k => {
+    const { _co, _ao, ...t } = k.t;
+    t._coverSize = k.cover ? k.cover.size : 0; t._audioSize = k.audio ? k.audio.size : 0;
+    if (k.cover) parts.push(k.cover); if (k.audio) parts.push(k.audio);
+    return t;
+  });
+  const liked = [...new Set(list.flatMap(b => b.data.liked).map(id => map.get(id)).filter(Boolean))];
+  const playlists = mergePlaylists(list.flatMap(b => b.data.playlists), map);
+  const head = new TextEncoder().encode(JSON.stringify({ v: 1, date: Date.now(), tracks, playlists, liked }));
+  const len = new Uint8Array(4); new DataView(len.buffer).setUint32(0, head.length);
+  return { blob: new Blob([MAGIC, len, head, ...parts], { type: 'application/octet-stream' }), songs: tracks.length, dups, playlists: playlists.length };
+}
+
+// Import: Titel, die schon in der Bibliothek sind, werden übersprungen (keine Dopplungen)
+async function importBackupFile(f) {
+  try {
+    const b = await readBackup(f), data = b.data;
+    const map = new Map(), todo = [];
+    for (const t of data.tracks) { const ex = S.tracks.find(x => sameSong(x, t)); if (ex) map.set(t.id, ex.id); else { todo.push(t); map.set(t.id, t.id); } }
+    const skip = data.tracks.length - todo.length;
+    if (!confirm(`Backup vom ${new Date(data.date).toLocaleString('de-DE')} importieren?\n\n${todo.length} neue Titel${skip ? `, ${skip} schon vorhanden (werden übersprungen)` : ''} · ${data.playlists.length} Playlists\n\nVorhandene Titel bleiben erhalten.`)) return;
+    toast('Import läuft …');
+    for (const m of todo) {
+      const { _coverSize, _coverType, _audioSize, _audioType, _co, _ao, ...t } = m;
+      if (_coverSize) t.cover = new Blob([f.slice(_co, _co + _coverSize)], { type: _coverType });
+      if (_audioSize) await DB.put('blobs', new Blob([f.slice(_ao, _ao + _audioSize)], { type: _audioType }), t.id);
+      await DB.put('tracks', t);
+    }
+    for (const p of mergePlaylists([...S.playlists, ...data.playlists.map(p => ({ ...p, tracks: p.tracks.map(id => map.get(id)).filter(Boolean) }))], new Map([...S.tracks.map(t => [t.id, t.id]), ...[...map.values()].map(v => [v, v])]))) await DB.put('playlists', p);
+    for (const id of data.liked) if (map.get(id)) S.liked.add(map.get(id)); await saveLiked();
+    await load(); render(); renderNP(); toast(`${todo.length} Titel importiert${skip ? ` · ${skip} Dopplungen übersprungen` : ''}`);
   } catch (err) { alert('Import fehlgeschlagen: ' + (err.message || err)); }
+}
+$('#fImport').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importBackupFile(f); };
+
+// Dialog „Backups kombinieren“
+const CB = { list: [], result: null };
+function openCombine() { CB.list = []; CB.result = null; renderCombine(); $('#cbOv').classList.add('open'); }
+function renderCombine() {
+  const total = CB.list.reduce((s, b) => s + b.data.tracks.length, 0);
+  $('#cbBody').innerHTML = `<p class="small" style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.5">Wähle zwei (oder mehr) Backup-Dateien. Soundify fügt sie zu <b>einem</b> Backup zusammen – doppelte Songs (gleicher Titel + Künstler, gleiche Datei) kommen nur einmal hinein. Playlists und „Lieblingssongs“ werden zusammengeführt.</p>
+    <div class="cb-list">${CB.list.map((b, i) => `<div class="cb-item"><div class="cb-n">${i + 1}</div><div class="tx"><b>${esc(b.file.name)}</b><span>${b.data.tracks.length} Titel · ${b.data.playlists.length} Playlists · ${(b.file.size / 1048576).toFixed(0)} MB · vom ${new Date(b.data.date).toLocaleDateString('de-DE')}</span></div><button class="icon-btn" data-cbrm="${i}" title="Entfernen">${IC.x}</button></div>`).join('')}
+    <button class="cb-add" data-cbadd>${IC.plus}${CB.list.length ? 'Weiteres Backup hinzufügen' : 'Backups auswählen'}</button></div>
+    ${CB.result ? `<div class="cb-res"><b>✓ Fertig kombiniert</b><span>${CB.result.songs} Titel · ${CB.result.dups} Dopplung${CB.result.dups === 1 ? '' : 'en'} entfernt · ${CB.result.playlists} Playlists · ${(CB.result.blob.size / 1048576).toFixed(0)} MB</span></div>` : ''}
+    <div class="modal-f" style="margin-top:18px">${CB.list.length >= 2 ? `<span class="small" style="margin-right:auto">${total} Titel insgesamt</span>` : '<span class="small" style="margin-right:auto">Mindestens 2 Backups nötig</span>'}
+      <button class="btn-t" data-cbgo="import" ${CB.list.length >= 2 ? '' : 'disabled'}>Kombinieren &amp; importieren</button><button class="btn-p" data-cbgo="save" ${CB.list.length >= 2 ? '' : 'disabled'}>Kombinieren &amp; speichern</button></div>`;
+}
+$('#fCombine').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  for (const f of files) { try { CB.list.push(await readBackup(f)); } catch (err) { toast(err.message || String(err)); } }
+  CB.result = null; renderCombine();
 };
+$('#cbBody').addEventListener('click', async e => {
+  if (e.target.closest('[data-cbadd]')) return $('#fCombine').click();
+  const rm = e.target.closest('[data-cbrm]'); if (rm) { CB.list.splice(+rm.dataset.cbrm, 1); CB.result = null; return renderCombine(); }
+  const go = e.target.closest('[data-cbgo]'); if (!go || CB.list.length < 2) return;
+  CB.result = combineBackups(CB.list); renderCombine();
+  const name = `soundify-kombiniert-${new Date().toISOString().slice(0, 10)}.soundify`;
+  if (go.dataset.cbgo === 'save') {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(CB.result.blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    toast(`Kombiniertes Backup gespeichert · ${CB.result.dups} Dopplungen entfernt`);
+  } else { $('#cbOv').classList.remove('open'); importBackupFile(new File([CB.result.blob], name)); }
+});
 
 /* ---------- Menus ---------- */
 const menu = $('#menu');
 function showMenu(x, y, above) {
-  menu.classList.add('open');
+  // Handy: Menüs erscheinen als Blatt von unten (gut erreichbar, nie außerhalb des Bildschirms)
+  const sheet = isMobile(); menu.classList.toggle('sheet', sheet); menu.classList.add('open');
+  if (sheet) { menu.style.left = menu.style.top = ''; return; }
   const r = menu.getBoundingClientRect();
   if (above) y = y - r.height;
   menu.style.left = Math.max(8, Math.min(x, innerWidth - r.width - 8)) + 'px';
@@ -1913,7 +2066,7 @@ function openMenu(tid, x, y, plId) {
   showMenu(x, y);
 }
 function openSettingsMenu(x, y) {
-  menu.innerHTML = `<button data-m="creative" class="${S.settings.creative ? 'on' : ''}">✦ Kreative Funktionen: ${S.settings.creative ? 'an' : 'aus'}</button><button data-m="crpanel">✦ Kreative Funktionen – Liste &amp; Einstellungen</button><hr><button data-m="notify" class="${S.settings.notify ? 'on' : ''}">${IC.speaker}Song-Info beim Start: ${S.settings.notify ? 'an' : 'aus'}</button><button data-m="testnotify">${IC.play}Song-Info testen</button><hr><button data-m="export">${IC.save}Backup exportieren</button><button data-m="import">${IC.load}Backup importieren</button><hr><button data-m="stats">${IC.chart}Statistik</button><button data-m="kb">${IC.kb}Tastenkürzel</button><hr><button data-m="resetstats" style="color:var(--danger)">${IC.trash}Wiedergabe-Statistik zurücksetzen</button>`;
+  menu.innerHTML = `<button data-m="creative" class="${S.settings.creative ? 'on' : ''}">✦ Kreative Funktionen: ${S.settings.creative ? 'an' : 'aus'}</button><button data-m="crpanel">✦ Kreative Funktionen – Liste &amp; Einstellungen</button><hr><button data-m="notify" class="${S.settings.notify ? 'on' : ''}">${IC.speaker}Song-Info beim Start: ${S.settings.notify ? 'an' : 'aus'}</button><button data-m="testnotify">${IC.play}Song-Info testen</button><hr><button data-m="export">${IC.save}Backup exportieren</button><button data-m="import">${IC.load}Backup importieren</button><button data-m="combine">${IC.load}Backups kombinieren</button><hr><button data-m="stats">${IC.chart}Statistik</button><button data-m="kb">${IC.kb}Tastenkürzel</button><hr><button data-m="resetstats" style="color:var(--danger)">${IC.trash}Wiedergabe-Statistik zurücksetzen</button>`;
   showMenu(x, y);
 }
 function addToQueue(tid, asNext) {
@@ -1943,6 +2096,7 @@ menu.addEventListener('click', async e => {
     case 'sleep': { const v = b.dataset.v; S.sleepAt = 0; S.sleepEnd = false; if (v === 'end') { S.sleepEnd = true; toast('Stoppt am Ende des Titels'); } else if (v !== 'off') { S.sleepAt = Date.now() + v * 60000; toast(`Sleep-Timer: ${v} Minuten`); } else toast('Sleep-Timer aus'); renderNP(); break; }
     case 'export': exportBackup(); break;
     case 'import': $('#fImport').click(); break;
+    case 'combine': openCombine(); break;
     case 'stats': go('stats'); break;
     case 'kb': $('#kbOv').classList.add('open'); break;
     case 'creative': setCreative(!S.settings.creative); break;
@@ -1986,6 +2140,10 @@ document.addEventListener('click', e => {
       case 'rp': S.settings.rp = !S.settings.rp; saveSettings(); return renderNP();
       case 'fs': return toggleFS();
       case 'creative': return openCreative();
+      case 'fsleep': return sleepMenu(el);
+      case 'fspeed': return speedMenu(el);
+      case 'fslyr': S.fsLyr = !S.fsLyr; return renderFS();
+      case 'fsqueue': toggleFS(false); return go('queue');
       case 'shuffle': return toggleShuffle();
       case 'repeat': return cycleRepeat();
       case 'prev': return prev();
@@ -2182,7 +2340,12 @@ document.body.classList.toggle('creative', !!S.settings.creative);
 
 /* ---------- Als App installierbar (PWA) ---------- */
 let deferredInstall = null;
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  // Wenn eine neue Version bereitsteht: einmal automatisch neu laden, damit sie sofort aktiv ist
+  const hadSW = !!navigator.serviceWorker.controller; let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadSW && !reloaded) { reloaded = true; location.reload(); } });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
+}
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; $('#bInstall').hidden = false; });
 window.addEventListener('offline', () => toast('Offline – Soundify läuft weiter mit deiner gespeicherten Musik'));
 window.addEventListener('online', () => toast('Wieder online'));
